@@ -1,0 +1,14 @@
+dataset: data/sample_invoices
+tasks:
+  - invoice_extraction
+
+configs:
+  - name: mock_baseline
+    backend: mock
+    model: mock-vlm
+    quantization: none
+
+  - name: transformers_fp16
+    backend: transformers
+    model: Qwen/Qwen2-VL-2B-Instruct
+    quantization: fp16
