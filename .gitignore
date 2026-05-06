@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Virtual env
+.venv/
+venv/
+
+# Build
+dist/
+build/
+
+# uv
+uv.lock
+
+# Generated data
+data/sample_invoices/images/*.png
+data/sample_invoices/labels.jsonl
+results/
+
+# Model cache
+.cache/
+*.gguf
+
+# OS
+.DS_Store
