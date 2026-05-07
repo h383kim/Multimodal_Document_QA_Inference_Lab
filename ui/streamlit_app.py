@@ -1,6 +1,8 @@
 """Streamlit QA workbench for the multimodal document QA lab."""
+
 from __future__ import annotations
 
+import os
 from typing import Any
 
 import streamlit as st
@@ -8,8 +10,7 @@ import streamlit as st
 from ui.api_client import ApiClientError, LabApiClient, UploadedDocument
 from ui.document_preview import PreviewError, build_preview
 
-
-DEFAULT_API_BASE_URL = "http://localhost:8000"
+DEFAULT_API_BASE_URL = os.environ.get("MMI_API_URL", "http://localhost:8000")
 SCHEMA_OPTIONS = ["invoice_extraction", "receipt_extraction"]
 OUTPUT_MODES = ["json", "natural_language", "field_extraction"]
 BACKENDS = ["mock", "transformers"]

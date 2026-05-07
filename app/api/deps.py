@@ -1,10 +1,12 @@
 """FastAPI dependency providers (singletons that survive the app lifetime)."""
+
 from __future__ import annotations
 
 import json
 from functools import lru_cache
 from pathlib import Path
 
+import structlog
 from PIL import Image
 
 from app.backends.base import ModelBackend
@@ -12,9 +14,7 @@ from app.backends.mock_backend import MockBackend
 from app.config import Settings, get_settings
 from app.ingestion.document_store import DocumentStore
 
-
-REPO_ROOT = Path(__file__).resolve().parents[2]
-SAMPLE_INVOICE_DATASET = REPO_ROOT / "data" / "sample_invoices"
+log = structlog.get_logger("app.api.deps")
 
 
 @lru_cache(maxsize=1)
@@ -25,6 +25,12 @@ def get_document_store() -> DocumentStore:
 
 @lru_cache(maxsize=8)
 def _build_backend(backend_name: str, model: str | None, quantization: str | None) -> ModelBackend:
+    log.info(
+        "backend.init",
+        backend=backend_name,
+        model=model,
+        quantization=quantization,
+    )
     if backend_name == "mock":
         return _build_mock_backend()
     if backend_name == "transformers":
@@ -46,9 +52,10 @@ def _build_mock_backend() -> MockBackend:
 
 def _register_sample_invoice_answers(
     backend: MockBackend,
-    dataset_dir: Path = SAMPLE_INVOICE_DATASET,
+    dataset_dir: Path | None = None,
 ) -> int:
     """Load generated sample invoice labels into the mock backend when present."""
+    dataset_dir = dataset_dir or get_settings().sample_invoice_dir
     labels_path = dataset_dir / "labels.jsonl"
     if not labels_path.exists():
         return 0

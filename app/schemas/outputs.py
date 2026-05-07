@@ -1,4 +1,5 @@
 """Pydantic models for structured QA outputs."""
+
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
@@ -18,9 +19,14 @@ class ReceiptExtraction(BaseModel):
     payment_method: str | None = Field(default=None)
 
 
+class DocVQAAnswer(BaseModel):
+    answer: str | None = Field(default=None)
+
+
 SCHEMA_REGISTRY: dict[str, type[BaseModel]] = {
     "invoice_extraction": InvoiceExtraction,
     "receipt_extraction": ReceiptExtraction,
+    "docvqa_answer": DocVQAAnswer,
 }
 
 

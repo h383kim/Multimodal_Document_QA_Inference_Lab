@@ -1,6 +1,8 @@
 """POST /qa — answers a question about a previously-uploaded document."""
+
 from __future__ import annotations
 
+import structlog
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.deps import get_backend, get_document_store
@@ -9,8 +11,8 @@ from app.ingestion.document_store import DocumentStore
 from app.schemas.outputs import get_schema
 from app.schemas.requests import QAMetrics, QARequest, QAResponse
 
-
 router = APIRouter(tags=["qa"])
+log = structlog.get_logger("app.api.qa")
 
 
 def _build_prompt(question: str, schema_name: str | None, output_mode: str) -> str:
@@ -59,6 +61,16 @@ def qa(
         info = backend.get_model_info()
         answer = result.parsed.model_dump() if result.parsed else result.raw_answer
         backend_resp = result.last_backend_response
+        log.info(
+            "qa.completed",
+            mode="json",
+            schema=request.schema_name,
+            backend=info["backend"],
+            model=info["model"],
+            schema_valid=result.schema_valid,
+            retry_count=result.retry_count,
+            total_latency_ms=round(backend_resp["total_latency_ms"], 2),
+        )
         return QAResponse(
             answer=answer,
             metrics=QAMetrics(
@@ -77,6 +89,13 @@ def qa(
     # natural_language / field_extraction → return raw text from a single call
     backend_resp = backend.generate(doc.pages[0], prompt)
     info = backend.get_model_info()
+    log.info(
+        "qa.completed",
+        mode=request.output_mode,
+        backend=info["backend"],
+        model=info["model"],
+        total_latency_ms=round(backend_resp["total_latency_ms"], 2),
+    )
     return QAResponse(
         answer=backend_resp["answer"],
         metrics=QAMetrics(

@@ -1,4 +1,5 @@
 """FastAPI dependency helper behavior."""
+
 from __future__ import annotations
 
 import json
