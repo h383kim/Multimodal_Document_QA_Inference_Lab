@@ -64,13 +64,22 @@ class TransformersBackend(ModelBackend):
         self.model.eval()
 
     def _load_model(self, model_id: str, dtype, device: str):
-        from transformers import AutoModelForVision2Seq
+        try:
+            from transformers import AutoModelForImageTextToText
 
-        model = AutoModelForVision2Seq.from_pretrained(
-            model_id,
-            torch_dtype=dtype,
-            trust_remote_code=True,
-        )
+            model = AutoModelForImageTextToText.from_pretrained(
+                model_id,
+                torch_dtype=dtype,
+                trust_remote_code=True,
+            )
+        except (ImportError, ValueError):
+            from transformers import Qwen2VLForConditionalGeneration
+
+            model = Qwen2VLForConditionalGeneration.from_pretrained(
+                model_id,
+                torch_dtype=dtype,
+                trust_remote_code=True,
+            )
         model.to(device)
         return model
 

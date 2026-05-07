@@ -124,6 +124,7 @@ def parse_json_with_retry(
             continue
         try:
             parsed_dict = json.loads(candidate)
+            parsed_dict = _coerce_schema_keys(parsed_dict, schema)
             parsed = schema.model_validate(parsed_dict)
             return ParseResult(
                 parsed=parsed,
@@ -146,3 +147,32 @@ def parse_json_with_retry(
         parse_failure_reason=last_error,
         last_backend_response=last_response,
     )
+
+
+def _coerce_schema_keys(value: Any, schema: type[BaseModel]) -> Any:
+    """Map common model key variants onto the requested Pydantic field names."""
+    if not isinstance(value, dict):
+        return value
+
+    normalized_fields: dict[str, str] = {}
+    for field in schema.model_fields:
+        for alias in _field_key_aliases(field):
+            normalized_fields[alias] = field
+    coerced: dict[str, Any] = {}
+    for key, item in value.items():
+        schema_key = normalized_fields.get(_normalize_key(str(key)), key)
+        coerced[schema_key] = item
+    return coerced
+
+
+def _field_key_aliases(field: str) -> set[str]:
+    normalized = _normalize_key(field)
+    aliases = {normalized}
+    for suffix in ("name", "date", "amount", "number", "method"):
+        if normalized.endswith(suffix):
+            aliases.add(normalized[: -len(suffix)])
+    return {alias for alias in aliases if alias}
+
+
+def _normalize_key(key: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", key.lower())

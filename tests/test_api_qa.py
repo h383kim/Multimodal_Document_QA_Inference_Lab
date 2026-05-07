@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from app.api.deps import _build_backend, get_document_store
-from app.backends.mock_backend import MockBackend, _image_fingerprint
+from app.backends.mock_backend import MockBackend
 from app.main import create_app
 
 

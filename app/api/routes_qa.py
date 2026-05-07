@@ -36,7 +36,13 @@ def qa(
     if not doc.pages:
         raise HTTPException(status_code=400, detail="document has no pages")
 
-    backend = get_backend(request.backend, request.model, request.quantization)
+    try:
+        backend = get_backend(request.backend, request.model, request.quantization)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=500,
+            detail=f"could not initialize backend '{request.backend or 'default'}': {exc}",
+        ) from exc
     prompt = _build_prompt(request.question, request.schema_name, request.output_mode)
 
     if request.output_mode == "json":
