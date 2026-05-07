@@ -79,3 +79,82 @@ def test_qa_unknown_file_id(small_image):
         },
     )
     assert r.status_code == 404
+
+
+def test_qa_with_routing_attaches_route_decision(
+    small_image, small_image_bytes, tmp_path, monkeypatch
+):
+    """Routing on /qa should attach a route_decision and append a JSONL log entry."""
+    monkeypatch.setenv("MMI_RESULTS_DIR", str(tmp_path))
+
+    # The Router runs OCR by default; force it off so this test doesn't need pytesseract.
+    from app.api import routes_qa
+    from app.routing.router import Router
+
+    routes_qa._get_router.cache_clear()
+    monkeypatch.setattr(routes_qa, "_get_router", lambda: Router(run_ocr_on_route=False))
+
+    # Clear the settings lru_cache so MMI_RESULTS_DIR takes effect.
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+
+    client, _ = _client_with_canned_answer(small_image)
+    r = client.post(
+        "/documents/upload",
+        files={"file": ("test.png", small_image_bytes, "image/png")},
+    )
+    file_id = r.json()["file_id"]
+
+    r2 = client.post(
+        "/qa",
+        json={
+            "file_id": file_id,
+            "question": "Extract fields",
+            "output_mode": "json",
+            "schema_name": "invoice_extraction",
+            "backend": "mock",
+            "route": True,
+        },
+    )
+    assert r2.status_code == 200, r2.text
+    body = r2.json()
+    assert body["route_decision"] is not None
+    assert body["route_decision"]["path"] in {"ocr", "small_vlm", "large_vlm"}
+
+    log_path = tmp_path / "routing_log.jsonl"
+    assert log_path.exists()
+    lines = log_path.read_text(encoding="utf-8").strip().splitlines()
+    assert len(lines) >= 1
+
+
+def test_qa_without_routing_does_not_create_log(
+    small_image, small_image_bytes, tmp_path, monkeypatch
+):
+    monkeypatch.setenv("MMI_RESULTS_DIR", str(tmp_path))
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+
+    client, _ = _client_with_canned_answer(small_image)
+    r = client.post(
+        "/documents/upload",
+        files={"file": ("test.png", small_image_bytes, "image/png")},
+    )
+    file_id = r.json()["file_id"]
+
+    r2 = client.post(
+        "/qa",
+        json={
+            "file_id": file_id,
+            "question": "Extract fields",
+            "output_mode": "json",
+            "schema_name": "invoice_extraction",
+            "backend": "mock",
+            # route omitted → defaults to False
+        },
+    )
+    assert r2.status_code == 200
+    body = r2.json()
+    assert body["route_decision"] is None
+    assert not (tmp_path / "routing_log.jsonl").exists()

@@ -2,17 +2,62 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
+
 import structlog
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.deps import get_backend, get_document_store
+from app.config import get_settings
 from app.evals.schema_validation import parse_json_with_retry
-from app.ingestion.document_store import DocumentStore
+from app.ingestion.document_store import DocumentStore, StoredDocument
+from app.routing.log import append_decision
+from app.routing.router import Router
+from app.routing.types import RouteDecision
 from app.schemas.outputs import get_schema
-from app.schemas.requests import QAMetrics, QARequest, QAResponse
+from app.schemas.requests import QAMetrics, QARequest, QAResponse, RouteDecisionDTO
 
 router = APIRouter(tags=["qa"])
 log = structlog.get_logger("app.api.qa")
+
+
+@lru_cache(maxsize=1)
+def _get_router() -> Router:
+    return Router()
+
+
+def _route_request(doc: StoredDocument, request: QARequest) -> RouteDecision:
+    decision = _get_router().route(
+        image=doc.pages[0],
+        question=request.question,
+        schema_name=request.schema_name,
+        is_multipage=len(doc.pages) > 1,
+    )
+    structlog_ctx = structlog.contextvars.get_contextvars()
+    append_decision(
+        get_settings().routing_log_path,
+        decision,
+        request_id=structlog_ctx.get("request_id"),
+        schema_name=request.schema_name,
+    )
+    log.info(
+        "qa.route",
+        path=decision.path,
+        reason=decision.reason,
+        ocr_confidence=decision.ocr_confidence,
+    )
+    return decision
+
+
+def _to_dto(decision: RouteDecision | None) -> RouteDecisionDTO | None:
+    if decision is None:
+        return None
+    return RouteDecisionDTO(
+        path=decision.path,
+        reason=decision.reason,
+        ocr_confidence=decision.ocr_confidence,
+        features=decision.features,
+    )
 
 
 def _build_prompt(question: str, schema_name: str | None, output_mode: str) -> str:
@@ -45,6 +90,9 @@ def qa(
             status_code=500,
             detail=f"could not initialize backend '{request.backend or 'default'}': {exc}",
         ) from exc
+
+    route_decision = _route_request(doc, request) if request.route else None
+
     prompt = _build_prompt(request.question, request.schema_name, request.output_mode)
 
     if request.output_mode == "json":
@@ -84,6 +132,7 @@ def qa(
             backend=info["backend"],
             model=info["model"],
             quantization=info.get("quantization", "none"),
+            route_decision=_to_dto(route_decision),
         )
 
     # natural_language / field_extraction → return raw text from a single call
@@ -109,4 +158,5 @@ def qa(
         backend=info["backend"],
         model=info["model"],
         quantization=info.get("quantization", "none"),
+        route_decision=_to_dto(route_decision),
     )

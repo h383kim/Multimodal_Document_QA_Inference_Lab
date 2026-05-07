@@ -18,6 +18,7 @@ class QARequest(BaseModel):
     model: str | None = None
     quantization: str | None = None
     max_retries: int = 2
+    route: bool = False
 
 
 class QAMetrics(BaseModel):
@@ -29,12 +30,20 @@ class QAMetrics(BaseModel):
     schema_valid: bool
 
 
+class RouteDecisionDTO(BaseModel):
+    path: str
+    reason: str
+    ocr_confidence: float | None = None
+    features: dict[str, Any] = {}
+
+
 class QAResponse(BaseModel):
     answer: dict[str, Any] | str
     metrics: QAMetrics
     backend: str
     model: str
     quantization: str
+    route_decision: RouteDecisionDTO | None = None
 
 
 class BenchmarkRunRequest(BaseModel):
