@@ -23,7 +23,12 @@ uv run pytest -q
 uv run uvicorn app.main:app --reload
 # → docs at http://localhost:8000/docs
 
-# 5. Run the benchmark CLI (mock backend — no model download)
+# 5. Optional: start the Streamlit QA workbench
+uv sync --extra dev --extra ui
+uv run --extra ui streamlit run ui/streamlit_app.py
+# → UI at http://localhost:8501
+
+# 6. Run the benchmark CLI (mock backend — no model download)
 uv run python scripts/benchmark.py \
   --dataset data/sample_invoices --backend mock \
   --output results/smoke.json
@@ -42,13 +47,29 @@ curl -X POST http://localhost:8000/qa \
        "output_mode":"json","schema_name":"invoice_extraction","backend":"mock"}'
 ```
 
+## Streamlit UI
+
+The UI is a separate Streamlit app that talks to the FastAPI backend over HTTP.
+Start the API first, then launch the workbench:
+
+```bash
+uv run uvicorn app.main:app --reload
+uv run --extra ui streamlit run ui/streamlit_app.py
+```
+
+The workbench supports document upload, local image/PDF first-page preview,
+structured QA, backend/schema controls, API health status, and inference metrics.
+The default API URL is `http://localhost:8000` and can be changed in the sidebar.
+The default `mock` backend uses canned answers for generated sample invoices; use
+the `transformers` backend for real document reading.
+
 ## Real VLM (opt-in)
 
 The `transformers` backend loads `Qwen/Qwen2-VL-2B-Instruct` (~4.4GB) via HuggingFace. It picks `cuda` → `mps` → `cpu` automatically; uses fp16 on GPU/MPS and fp32 on CPU. INT8/INT4 quantization is intentionally raised as `NotImplementedError` — wiring `bitsandbytes` is milestone 4.
 
 ```bash
 # install ML deps
-uv sync --extra dev --extra ml
+uv sync --extra dev --extra ui --extra ml
 
 # benchmark with the real model
 uv run python scripts/benchmark.py \
@@ -92,9 +113,10 @@ app/
   schemas/      # Pydantic request + output models
   evals/        # JSON parse-with-retry, field match, percentile/mean helpers
   benchmarking/ # profiler context manager + dataset runner
+ui/             # Streamlit QA workbench + API/preview helpers
 configs/        # benchmark_matrix.yaml
 scripts/        # generate_sample_data.py, benchmark.py
-tests/          # 26 tests covering all of the above
+tests/          # tests covering all of the above
 ```
 
 ## What the MVP does *not* do (next milestones)
@@ -102,5 +124,5 @@ tests/          # 26 tests covering all of the above
 - Routing layer (OCR / small VLM / large VLM cost-aware path selection)
 - vLLM / llama.cpp backends
 - INT8 / INT4 / GGUF quantization (CUDA-only path stubbed with a clean error)
-- Streamlit / React dashboard
+- Full benchmark dashboard
 - Persistent SQLite-backed run history (file-based JSON results suffice for now)
