@@ -1,4 +1,5 @@
 """Benchmark runner over a fixture dataset."""
+
 from __future__ import annotations
 
 import json
@@ -6,7 +7,6 @@ from pathlib import Path
 
 from app.backends.mock_backend import MockBackend
 from app.benchmarking.runner import run_benchmark
-
 
 REQUIRED_AGGREGATE_KEYS = {
     "n",
@@ -39,7 +39,9 @@ def test_runner_aggregates_metrics(fixture_dataset, answer_book_for_fixture, tmp
 
 
 def test_runner_handles_invalid_answers(fixture_dataset, tmp_path):
-    backend = MockBackend(simulated_latency_ms=1.0)  # no answer book → falls back to wrong-but-valid JSON
+    backend = MockBackend(
+        simulated_latency_ms=1.0
+    )  # no answer book → falls back to wrong-but-valid JSON
     output = tmp_path / "report.json"
 
     report = run_benchmark(fixture_dataset, backend, output_path=output, max_retries=0)

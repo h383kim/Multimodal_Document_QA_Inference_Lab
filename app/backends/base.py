@@ -3,6 +3,7 @@
 Every backend (mock, transformers, vllm, llama.cpp) returns the same dict shape so the
 benchmarking layer can compare apples to apples. See CLAUDE.md for the contract spec.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod

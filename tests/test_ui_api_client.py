@@ -1,4 +1,5 @@
 """Streamlit UI API client behavior."""
+
 from __future__ import annotations
 
 import json

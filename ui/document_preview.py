@@ -1,4 +1,5 @@
 """Local document preview helpers for the Streamlit UI."""
+
 from __future__ import annotations
 
 import io

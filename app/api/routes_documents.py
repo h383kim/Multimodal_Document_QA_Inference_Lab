@@ -1,4 +1,5 @@
 """POST /documents/upload — accepts image or PDF, returns file_id."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
@@ -6,7 +7,6 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from app.api.deps import get_document_store
 from app.ingestion.document_store import DocumentStore
 from app.schemas.requests import UploadResponse
-
 
 router = APIRouter(prefix="/documents", tags=["documents"])
 
@@ -22,10 +22,7 @@ async def upload_document(
     is_pdf = name.endswith(".pdf") or content_type == "application/pdf"
 
     try:
-        if is_pdf:
-            doc = store.add_pdf(raw)
-        else:
-            doc = store.add_image(raw)
+        doc = store.add_pdf(raw) if is_pdf else store.add_image(raw)
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=400, detail=f"could not parse upload: {exc}") from exc
 

@@ -1,4 +1,5 @@
 """Field normalization."""
+
 from __future__ import annotations
 
 from app.evals.field_match import field_match, per_field_accuracy, record_accuracy

@@ -1,7 +1,8 @@
 """CLI entry point for the benchmark runner.
 
-    python scripts/benchmark.py --dataset data/sample_invoices --backend mock --output results/smoke.json
+python scripts/benchmark.py --dataset data/sample_invoices --backend mock --output results/smoke.json
 """
+
 from __future__ import annotations
 
 import argparse
@@ -18,7 +19,9 @@ from app.benchmarking.runner import run_benchmark  # noqa: E402
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", required=True, help="Directory containing labels.jsonl + images/")
+    parser.add_argument(
+        "--dataset", required=True, help="Directory containing labels.jsonl + images/"
+    )
     parser.add_argument("--backend", default="mock", choices=["mock", "transformers"])
     parser.add_argument("--model", default=None)
     parser.add_argument("--quantization", default="fp16")

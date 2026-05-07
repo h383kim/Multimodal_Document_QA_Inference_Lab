@@ -1,9 +1,9 @@
 """MockBackend contract tests."""
+
 from __future__ import annotations
 
 from app.backends.base import BackendResponse
 from app.backends.mock_backend import MockBackend
-
 
 REQUIRED_KEYS = set(BackendResponse.__annotations__.keys())
 

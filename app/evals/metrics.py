@@ -1,4 +1,5 @@
 """Aggregate metric helpers for the benchmark layer."""
+
 from __future__ import annotations
 
 from collections.abc import Iterable

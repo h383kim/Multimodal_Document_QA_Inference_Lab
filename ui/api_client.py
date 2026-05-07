@@ -1,4 +1,5 @@
 """HTTP client for the FastAPI inference lab API."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass

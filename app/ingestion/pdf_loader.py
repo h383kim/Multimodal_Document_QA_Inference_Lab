@@ -1,4 +1,5 @@
 """PDF → list[PIL.Image] via PyMuPDF."""
+
 from __future__ import annotations
 
 import io
@@ -7,7 +8,9 @@ import fitz
 from PIL import Image
 
 
-def load_pdf_pages(pdf_bytes: bytes, dpi: int = 150, max_pages: int | None = None) -> list[Image.Image]:
+def load_pdf_pages(
+    pdf_bytes: bytes, dpi: int = 150, max_pages: int | None = None
+) -> list[Image.Image]:
     """Render each page of a PDF to a PIL.Image at the given DPI."""
     images: list[Image.Image] = []
     with fitz.open(stream=pdf_bytes, filetype="pdf") as doc:

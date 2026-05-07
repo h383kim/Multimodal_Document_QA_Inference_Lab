@@ -7,13 +7,13 @@ Output:
 Run from the repo root:
     python scripts/generate_sample_data.py
 """
+
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
-
 
 INVOICES = [
     {
@@ -54,7 +54,7 @@ INVOICES = [
 ]
 
 
-def _font(size: int) -> ImageFont.ImageFont:
+def _font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     # Try a few common system fonts; fall back to PIL's default.
     candidates = [
         "/System/Library/Fonts/Supplemental/Arial.ttf",

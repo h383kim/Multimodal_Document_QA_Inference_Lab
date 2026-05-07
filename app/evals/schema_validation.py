@@ -1,4 +1,5 @@
 """JSON extraction + schema validation with retry."""
+
 from __future__ import annotations
 
 import json
@@ -10,7 +11,6 @@ from PIL.Image import Image
 from pydantic import BaseModel, ValidationError
 
 from app.backends.base import BackendResponse, ModelBackend
-
 
 _FENCED_BLOCK = re.compile(r"```(?:json)?\s*(\{.*?\}|\[.*?\])\s*```", re.DOTALL)
 
@@ -160,7 +160,8 @@ def _coerce_schema_keys(value: Any, schema: type[BaseModel]) -> Any:
             normalized_fields[alias] = field
     coerced: dict[str, Any] = {}
     for key, item in value.items():
-        schema_key = normalized_fields.get(_normalize_key(str(key)), key)
+        key_str = str(key)
+        schema_key = normalized_fields.get(_normalize_key(key_str), key_str)
         coerced[schema_key] = item
     return coerced
 

@@ -5,6 +5,7 @@ fp16; on Linux GPU it can run in bf16. INT8/INT4 quantization requires CUDA +
 bitsandbytes and is intentionally raised as NotImplementedError so milestone 4 has
 a clean extension point.
 """
+
 from __future__ import annotations
 
 import time
@@ -63,7 +64,7 @@ class TransformersBackend(ModelBackend):
         self.model = self._load_model(model_id, dtype, device)
         self.model.eval()
 
-    def _load_model(self, model_id: str, dtype, device: str):
+    def _load_model(self, model_id: str, dtype: Any, device: str) -> Any:
         try:
             from transformers import AutoModelForImageTextToText
 

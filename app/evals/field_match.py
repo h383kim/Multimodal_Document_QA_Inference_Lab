@@ -1,9 +1,9 @@
 """Normalized field-level accuracy."""
+
 from __future__ import annotations
 
 import re
 from typing import Any
-
 
 _NON_ALNUM = re.compile(r"[^a-z0-9]+")
 

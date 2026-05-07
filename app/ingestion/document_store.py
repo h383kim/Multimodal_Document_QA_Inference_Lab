@@ -2,6 +2,7 @@
 
 MVP-only — replace with disk-backed storage when persistence is needed.
 """
+
 from __future__ import annotations
 
 import io
@@ -27,8 +28,8 @@ class DocumentStore:
         self.max_image_edge = max_image_edge
 
     def add_image(self, image_bytes: bytes) -> StoredDocument:
-        img = Image.open(io.BytesIO(image_bytes))
-        img = resize_max_edge(img, self.max_image_edge)
+        opened = Image.open(io.BytesIO(image_bytes))
+        img = resize_max_edge(opened, self.max_image_edge)
         return self._store("image", [img])
 
     def add_pdf(self, pdf_bytes: bytes, max_pages: int | None = None) -> StoredDocument:

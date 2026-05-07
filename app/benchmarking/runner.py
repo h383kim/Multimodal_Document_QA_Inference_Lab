@@ -5,6 +5,7 @@ A "dataset" is a directory shaped:
     images/...png
     labels.jsonl   # one row per example: {id, file, question, expected, schema}
 """
+
 from __future__ import annotations
 
 import io
@@ -75,7 +76,9 @@ def run_benchmark(
         expected = row.get("expected", {})
         acc = record_accuracy(predicted, expected)
         field_breakdown = (
-            per_field_accuracy(predicted, expected) if predicted is not None else {k: False for k in expected}
+            per_field_accuracy(predicted, expected)
+            if predicted is not None
+            else {k: False for k in expected}
         )
 
         per_row.append(

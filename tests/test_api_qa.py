@@ -1,4 +1,5 @@
 """End-to-end API smoke via FastAPI TestClient."""
+
 from __future__ import annotations
 
 from fastapi.testclient import TestClient

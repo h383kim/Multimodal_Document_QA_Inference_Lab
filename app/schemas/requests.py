@@ -1,10 +1,10 @@
 """API request/response models."""
+
 from __future__ import annotations
 
 from typing import Any, Literal
 
 from pydantic import BaseModel
-
 
 OutputMode = Literal["natural_language", "json", "field_extraction"]
 

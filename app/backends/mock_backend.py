@@ -3,6 +3,7 @@
 Returns canned JSON answers from an in-memory answer book. Simulates plausible latency
 so the benchmark layer has real numbers to crunch.
 """
+
 from __future__ import annotations
 
 import hashlib

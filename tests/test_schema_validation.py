@@ -1,4 +1,5 @@
 """JSON extraction + retry behaviour."""
+
 from __future__ import annotations
 
 from app.backends.mock_backend import MockBackend
@@ -12,14 +13,14 @@ def test_extract_bare_json():
 
 
 def test_extract_fenced_json():
-    raw = "Here you go:\n```json\n{\"invoice_number\": \"INV-1\"}\n```\nThanks."
+    raw = 'Here you go:\n```json\n{"invoice_number": "INV-1"}\n```\nThanks.'
     extracted = extract_json(raw)
     assert extracted is not None
     assert "INV-1" in extracted
 
 
 def test_extract_narrative_json():
-    raw = "The answer is {\"invoice_number\": \"INV-1\", \"vendor_name\": \"Acme\"} hope this helps"
+    raw = 'The answer is {"invoice_number": "INV-1", "vendor_name": "Acme"} hope this helps'
     extracted = extract_json(raw)
     assert extracted is not None
     assert "Acme" in extracted

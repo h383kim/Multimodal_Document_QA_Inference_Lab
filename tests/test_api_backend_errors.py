@@ -1,4 +1,5 @@
 """API behavior when backend initialization fails."""
+
 from __future__ import annotations
 
 from fastapi.testclient import TestClient

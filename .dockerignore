@@ -1,0 +1,50 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+.git/
+.github/
+.gitignore
+.gitattributes
+
+.env
+.env.*
+!.env.example
+
+# Local assistant/tool state
+.claude/
+.codex/
+
+# Generated data and runs
+data/sample_invoices/images/
+data/sample_invoices/labels.jsonl
+data/datasets/
+results/
+*.log
+
+# Docs and dev-only
+docs/
+tests/
+*.md
+!README.md
+
+# Editor/OS
+.DS_Store
+.idea/
+.vscode/
+
+# Model artifacts
+*.gguf
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.onnx
+hf_cache/
+huggingface/
