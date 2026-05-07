@@ -8,6 +8,7 @@ A "dataset" is a directory shaped:
 
 from __future__ import annotations
 
+import csv
 import io
 import json
 from datetime import datetime, timezone
@@ -21,6 +22,27 @@ from app.evals.field_match import per_field_accuracy, record_accuracy
 from app.evals.metrics import fraction, mean, percentile
 from app.evals.schema_validation import parse_json_with_retry
 from app.schemas.outputs import get_schema
+
+CSV_FIELDS = (
+    "id",
+    "schema",
+    "schema_valid",
+    "retry_count",
+    "field_accuracy",
+    "ttft_ms",
+    "total_latency_ms",
+    "tokens_per_second",
+    "peak_memory_mb",
+)
+
+
+def _write_csv(per_row: list[dict[str, Any]], csv_path: Path) -> None:
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    with csv_path.open("w", encoding="utf-8", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
+        writer.writeheader()
+        for row in per_row:
+            writer.writerow({key: row.get(key) for key in CSV_FIELDS})
 
 
 def _iter_jsonl(path: Path):
@@ -46,6 +68,7 @@ def run_benchmark(
     backend: ModelBackend,
     output_path: str | Path | None = None,
     max_retries: int = 2,
+    csv_path: str | Path | None = None,
 ) -> dict[str, Any]:
     dataset_dir = Path(dataset_dir)
     labels_path = dataset_dir / "labels.jsonl"
@@ -127,5 +150,8 @@ def run_benchmark(
         out = Path(output_path)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(report, indent=2))
+
+    if csv_path is not None:
+        _write_csv(per_row, Path(csv_path))
 
     return report

@@ -13,7 +13,9 @@ import structlog
 from fastapi import APIRouter
 
 from app.api.deps import get_backend
+from app.benchmarking.results_store import append_run
 from app.benchmarking.runner import run_benchmark
+from app.config import get_settings
 from app.schemas.requests import BenchmarkRunRequest
 
 router = APIRouter(prefix="/benchmarks", tags=["benchmarks"])
@@ -37,9 +39,12 @@ def run(request: BenchmarkRunRequest) -> dict[str, Any]:
         output_path=request.output,
         max_retries=request.max_retries,
     )
+    run_id = append_run(report, get_settings().results_db_path)
+    report["run_id"] = run_id
     aggregate = report.get("aggregate", {})
     log.info(
         "benchmark.completed",
+        run_id=run_id,
         duration_s=round(time.perf_counter() - start, 2),
         items=aggregate.get("n"),
         schema_valid_rate=aggregate.get("schema_valid_rate"),

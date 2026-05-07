@@ -31,7 +31,12 @@ uv run --extra ui streamlit run ui/streamlit_app.py
 # 6. Run the benchmark CLI (mock backend — no model download)
 uv run python scripts/benchmark.py \
   --dataset data/sample_invoices --backend mock \
-  --output results/smoke.json
+  --output results/smoke.json --csv results/smoke.csv
+# every run is appended to results/runs.sqlite for the dashboard
+
+# 7. Browse benchmark results in the dashboard (page 2 of the workbench)
+uv run --extra ui streamlit run ui/streamlit_app.py
+# → http://localhost:8501 → "01 Benchmarks" page in the sidebar
 ```
 
 API smoke (against the running server):
@@ -124,5 +129,3 @@ tests/          # tests covering all of the above
 - Routing layer (OCR / small VLM / large VLM cost-aware path selection)
 - vLLM / llama.cpp backends
 - INT8 / INT4 / GGUF quantization (CUDA-only path stubbed with a clean error)
-- Full benchmark dashboard
-- Persistent SQLite-backed run history (file-based JSON results suffice for now)

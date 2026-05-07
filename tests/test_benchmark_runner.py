@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 
 from app.backends.mock_backend import MockBackend
-from app.benchmarking.runner import run_benchmark
+from app.benchmarking.runner import CSV_FIELDS, run_benchmark
 
 REQUIRED_AGGREGATE_KEYS = {
     "n",
@@ -36,6 +37,21 @@ def test_runner_aggregates_metrics(fixture_dataset, answer_book_for_fixture, tmp
     assert output.exists()
     on_disk = json.loads(Path(output).read_text())
     assert on_disk["aggregate"]["n"] == 2
+
+
+def test_runner_writes_per_row_csv(fixture_dataset, answer_book_for_fixture, tmp_path):
+    backend = MockBackend(simulated_latency_ms=1.0, answer_book=answer_book_for_fixture)
+    csv_path = tmp_path / "rows.csv"
+
+    run_benchmark(fixture_dataset, backend, csv_path=csv_path)
+
+    assert csv_path.exists()
+    with csv_path.open(encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        rows = list(reader)
+    assert len(rows) == 2
+    assert set(rows[0].keys()) == set(CSV_FIELDS)
+    assert all(row["schema_valid"] == "True" for row in rows)
 
 
 def test_runner_handles_invalid_answers(fixture_dataset, tmp_path):
